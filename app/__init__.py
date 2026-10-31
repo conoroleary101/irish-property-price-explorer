@@ -15,6 +15,9 @@ def create_app(config_name=None):
     if config_name == "production" and not os.environ.get("SECRET_KEY"):
         raise RuntimeError("SECRET_KEY must be set in production")
 
+    from . import db
+    db.init_app(app)
+
     from .routes import bp
     app.register_blueprint(bp)
 
