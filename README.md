@@ -28,6 +28,52 @@ Contains Irish public sector information reused under the PSRA's re-use of publi
 
 Python, Flask, Jinja2, SQLite, pandas, matplotlib, pytest, GitHub Actions.
 
+## Run locally
+
+Requires Python 3.12 or later and Git.
+
+**1. Clone and enter the repo**
+
+    git clone https://github.com/conoroleary101/irish-property-price-explorer.git
+    cd irish-property-price-explorer
+
+**2. Create and activate a virtual environment**
+
+Windows PowerShell:
+
+    python -m venv .venv
+    Set-ExecutionPolicy -Scope Process -ExecutionPolicy RemoteSigned
+    .\.venv\Scripts\Activate.ps1
+
+macOS or Linux:
+
+    python3 -m venv .venv
+    source .venv/bin/activate
+
+The prompt starts with `(.venv)` once it is active.
+
+**3. Install dependencies**
+
+    pip install -r requirements.txt
+
+**4. Run the app**
+
+    flask --app app run --debug
+
+Open http://127.0.0.1:5000
+
+## Configuration
+
+Settings live in `config.py` and are selected with the `FLASK_CONFIG` environment variable. It defaults to `development`, so no setup is needed locally.
+
+| Value | Debug | Database |
+| --- | --- | --- |
+| `development` (default) | on | `property.db` |
+| `production` | off | `property.db` |
+| `testing` | off | `test.db` |
+
+`SECRET_KEY` is read from the environment. Development uses a placeholder. Production refuses to start unless a real `SECRET_KEY` is set, so no secret is ever committed to the repository.
+
 ## Status
 
 Sprint 1 (28 Sep to 12 Oct 2026) in progress.
