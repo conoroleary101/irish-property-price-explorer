@@ -31,3 +31,10 @@ Python, Flask, Jinja2, SQLite, pandas, matplotlib, pytest, GitHub Actions.
 ## Status
 
 Sprint 1 (28 Sep to 12 Oct 2026) in progress.
+
+## Running tests
+
+```bash
+pip install -r requirements.txt
+pytest
+```
