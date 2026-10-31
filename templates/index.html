@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Property Sales</h2>
+
+<div class="table-container">
+    {% if sales %}
+    <table>
+        <thead>
+            <tr>
+                <th>Date of Sale</th>
+                <th>Address</th>
+                <th>County</th>
+                <th>Price</th>
+                <th>Type</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in sales %}
+            <tr>
+                <td data-label="Date">{{ row['date_of_sale'] | dateformat }}</td>
+                <td data-label="Address">{{ row['address'] }}</td>
+                <td data-label="County">{{ row['county'] }}</td>
+                <td data-label="Price" class="price-cell">{{ row['price'] | euro }}</td>
+                <td data-label="Type">{{ row['description_of_property'] }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p class="empty-message">No sales found matching your criteria.</p>
+    {% endif %}
+</div>
+
+<!-- Pagination Controls -->
+<div class="pagination">
+    {% if page > 1 %}
+        <a href="{{ url_for('index', page=page-1) }}">&lt; Previous</a>
+    {% endif %}
+    <span>Page {{ page }}</span>
+    {% if sales|length == 50 %}
+        <a href="{{ url_for('index', page=page+1) }}">Next &gt;</a>
+    {% endif %}
+</div>
+{% endblock %}

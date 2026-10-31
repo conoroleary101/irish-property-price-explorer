@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Irish Property Price Explorer</title>
+    <!-- Link to shared stylesheet -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <header>
+        <h1>Irish Property Price Explorer</h1>
+        <nav>
+            <ul>
+                <li><a href="{{ url_for('index') }}">Home</a></li>
+                <!-- Add other links here later -->
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <!-- Child pages will insert their content here -->
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer>
+        <p>Data source: <a href="https://www.propertypriceregister.ie/" target="_blank">Property Services Regulatory Authority (PSRA)</a>.</p>
+        <p>Contains Irish public sector information reused under the PSRA's re-use terms.</p>
+    </footer>
+</body>
+</html>
