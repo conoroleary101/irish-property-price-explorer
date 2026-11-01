@@ -18,6 +18,9 @@ def create_app(config_name=None):
     from . import db
     db.init_app(app)
 
+    from . import filters
+    filters.init_app(app)
+
     from .routes import bp
     app.register_blueprint(bp)
 
