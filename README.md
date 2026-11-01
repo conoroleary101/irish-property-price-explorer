@@ -7,7 +7,7 @@ Built for the Agile Processes module (COMP7039), BSc (Hons) Software Development
 ## Team
 
 - Conor O'Leary
-- Katie McGrath
+- Katie McGrath - Templates and UX (Frontend)
 - Saadman Chowdhury
 - Christopher Bowes
 - Samuel Ignacio Acosta
