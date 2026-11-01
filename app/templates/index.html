@@ -35,11 +35,11 @@
 <!-- Pagination Controls -->
 <div class="pagination">
     {% if page > 1 %}
-        <a href="{{ url_for('index', page=page-1) }}">&lt; Previous</a>
+        <a href="{{ url_for('main.index', page=page-1) }}">&lt; Previous</a>
     {% endif %}
-    <span>Page {{ page }}</span>
-    {% if sales|length == 50 %}
-        <a href="{{ url_for('index', page=page+1) }}">Next &gt;</a>
+    <span>Page {{ page }} of {{ total_pages }}</span>
+    {% if page < total_pages %}
+        <a href="{{ url_for('main.index', page=page+1) }}">Next &gt;</a>
     {% endif %}
 </div>
 {% endblock %}
