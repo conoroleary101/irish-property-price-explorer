@@ -18,7 +18,7 @@ Residential Property Price Register, published by the Property Services Regulato
 
 https://www.propertypriceregister.ie/website/npsra/pprweb.nsf/page/ppr-home-en
 
-Snapshot used: register last updated 09/09/2026. 805,311 rows covering 1 January 2010 to 4 September 2026, all 26 counties.
+Snapshot used: downloaded 30 October 2026. 814,413 rows covering 1 January 2010 to 23 October 2026, all 26 counties.
 
 Note: the CSV is Windows-1252 encoded, not UTF-8.
 
