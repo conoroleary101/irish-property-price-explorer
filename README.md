@@ -78,6 +78,12 @@ Settings live in `config.py` and are selected with the `FLASK_CONFIG` environmen
 
 Sprint 1 (28 Sep to 12 Oct 2026) in progress.
 
+## Running tests
+
+```bash
+pip install -r requirements.txt
+pytest
+```
 ## Deployment (PythonAnywhere)
 
 Live site: https://chrisbowes.pythonanywhere.com
