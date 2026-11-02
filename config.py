@@ -1,9 +1,11 @@
 import os
 
+BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+
 
 class Config:
     SECRET_KEY = os.environ.get("SECRET_KEY", "dev-only-change-me")
-    DATABASE = os.environ.get("DATABASE", "property.db")
+    DATABASE = os.environ.get("DATABASE", os.path.join(BASE_DIR, "property.db"))
 
 
 class DevelopmentConfig(Config):
@@ -17,7 +19,7 @@ class ProductionConfig(Config):
 class TestingConfig(Config):
     TESTING = True
     DEBUG = False
-    DATABASE = "test.db"
+    DATABASE = os.path.join(BASE_DIR, "test.db")
 
 
 configs = {
