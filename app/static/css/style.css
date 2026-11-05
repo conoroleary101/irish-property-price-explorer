@@ -1,0 +1,140 @@
+/* Basic reset */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: system-ui, -apple-system, sans-serif;
+    line-height: 1.6;
+    color: #333;
+    background-color: #f9f9f9;
+}
+
+header, main, footer {
+    padding: 1rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+header {
+    background-color: #004d40;
+    color: white;
+    max-width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+header a { color: white; text-decoration: none; font-weight: bold; }
+nav ul { list-style: none; display: flex; gap: 15px; }
+
+/* Table Styles (Desktop) */
+.table-container {
+    width: 100%;
+    margin-top: 20px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+th, td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+th {
+    background-color: #f1f1f1;
+    font-weight: bold;
+}
+
+/* Pagination */
+.pagination {
+    margin-top: 20px;
+    display: flex;
+    gap: 15px;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.pagination a {
+    padding: 8px 16px;
+    background: #004d40;
+    color: white;
+    text-decoration: none;
+    border-radius: 4px;
+}
+
+/* Footer */
+footer {
+    margin-top: 40px;
+    padding-top: 20px;
+    border-top: 1px solid #ddd;
+    font-size: 0.9rem;
+    color: #666;
+    text-align: center;
+}
+
+/* =========================================
+   MOBILE RESPONSIVENESS (Matches Wireframe)
+   ========================================= */
+@media (max-width: 600px) {
+    /* Hide the main nav and show a hamburger placeholder */
+    nav ul { display: none; }
+    
+    /* Hide table headers */
+    table thead {
+        display: none;
+    }
+    
+    /* Force table elements to act like blocks */
+    table, tbody, tr, td {
+        display: block;
+        width: 100%;
+    }
+    
+    /* Style each row as a Card */
+    table tr {
+        margin-bottom: 15px;
+        border: 2px solid #333;
+        border-radius: 12px;
+        padding: 15px;
+        background: white;
+    }
+    
+    /* Style each cell */
+    table td {
+        border: none;
+        padding: 5px 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    /* Add labels to the left of the data */
+    table td::before {
+        content: attr(data-label);
+        font-weight: 600;
+        color: #555;
+    }
+
+    /* The Price needs to sit at the top of the card, bold, without a label */
+    table td.price-cell {
+        font-size: 1.2rem;
+        font-weight: bold;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 10px;
+        margin-bottom: 10px;
+        display: block;
+    }
+    table td.price-cell::before {
+        display: none; /* Hide the word "Price" */
+    }
+}

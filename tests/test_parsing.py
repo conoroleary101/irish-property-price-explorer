@@ -8,32 +8,31 @@ Hand-calculated expectations for tests/fixtures/sample_ppr.csv (20 rows):
   Rows 17-18 have a blank / "N/A" price (2 failures).
   Rows 19-20 have an invalid / wrong-format date (2 failures).
 """
-from datetime import date
-
 import pytest
 
-from app.parsing import clean_price, parse_date
+from scripts.conversions import clean_price, parse_date
+
+DATE_COL = "Date of Sale (dd/mm/yyyy)"
 
 
 @pytest.mark.parametrize("raw, expected", [
-    ("€250,000.00", 250000.0),     # normal value
-    ("€1,250,000.00", 1250000.0),  # several thousands separators
-    ("", None),                    # blank
-    ("N/A", None),                 # malformed
-    ("€25O,000", None),            # malformed: letter O instead of zero
+    ("€250,000.00", 250000),     # normal value
+    ("€1,250,000.00", 1250000),  # several thousands separators
+    ("", None),                  # blank
+    ("N/A", None),               # malformed
+    ("€25O,000", None),          # malformed: letter O instead of zero
 ])
 def test_clean_price(raw, expected):
     assert clean_price(raw) == expected
 
 
 def test_parse_date_valid():
-    assert parse_date("01/03/2023") == date(2023, 3, 1)
+    assert parse_date("01/03/2023") == "2023-03-01"
 
 
 @pytest.mark.parametrize("bad", ["31/02/2023", "2023-05-07", "", "abc"])
 def test_parse_date_rejects_invalid(bad):
-    with pytest.raises(ValueError):
-        parse_date(bad)
+    assert parse_date(bad) is None
 
 
 def test_fixture_price_total(fixture_rows, price_col):
@@ -45,11 +44,5 @@ def test_fixture_price_total(fixture_rows, price_col):
 
 
 def test_fixture_date_counts(fixture_rows):
-    ok = 0
-    for r in fixture_rows:
-        try:
-            parse_date(r["Date of Sale (dd/mm/yyyy)"])
-            ok += 1
-        except ValueError:
-            pass
-    assert ok == 18
+    parsed = [parse_date(r[DATE_COL]) for r in fixture_rows]
+    assert sum(d is not None for d in parsed) == 18
