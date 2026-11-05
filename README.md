@@ -80,10 +80,12 @@ Sprint 1 (28 Sep to 12 Oct 2026) in progress.
 
 ## Running tests
 
-```bash
-pip install -r requirements.txt
-pytest
-```
+With the virtual environment active (see Run locally above):
+
+    pytest
+
+Tests live in `tests/`. The parsing tests run against a 20-row hand-written fixture, `tests/fixtures/sample_ppr.csv`, never against the full dataset. GitHub Actions runs `pytest` on every push and pull request.
+
 ## Deployment (PythonAnywhere)
 
 Live site: https://chrisbowes.pythonanywhere.com
