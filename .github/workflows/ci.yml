@@ -22,3 +22,22 @@ jobs:
 
       - name: Run tests
         run: pytest
+
+
+  deploy:
+    needs: test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Pull and reload on PythonAnywhere
+        env:
+          DEPLOY_SECRET: ${{ secrets.DEPLOY_SECRET }}
+        run: |
+          curl --fail-with-body -sS -X POST \
+            -H "X-Deploy-Token: $DEPLOY_SECRET" \
+            https://chrisbowes.pythonanywhere.com/deploy
+
+      - name: Check the site is up after reload
+        run: |
+          sleep 20
+          curl --fail -sS https://chrisbowes.pythonanywhere.com/health
