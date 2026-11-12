@@ -23,6 +23,8 @@ def create_app(config_name=None):
 
     from .routes import bp
     app.register_blueprint(bp)
+    from .deploy import bp as deploy_bp
+    app.register_blueprint(deploy_bp)
 
     @app.errorhandler(404)
     def not_found(e):
