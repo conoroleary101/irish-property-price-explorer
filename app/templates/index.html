@@ -3,6 +3,20 @@
 {% block content %}
 <h2>Property Sales</h2>
 
+{# IPPE-17 (Katie) adds the filter form here. The route already accepts
+   county, year_from, year_to, price_min, price_max and property_type as
+   query-string parameters, and passes `counties` and `property_types`
+   into this template to populate the dropdowns. #}
+
+<p class="result-summary">
+    {{ "{:,}".format(total) }} sale{{ "" if total == 1 else "s" }} found.
+    {% if excluded %}
+        {{ "{:,}".format(excluded) }} non-market sale{{ "" if excluded == 1 else "s" }} excluded
+        (transfers that were not at full market price, such as between family
+        members, which would distort the figures).
+    {% endif %}
+</p>
+
 <div class="table-container">
     {% if sales %}
     <table>
@@ -32,14 +46,15 @@
     {% endif %}
 </div>
 
-<!-- Pagination Controls -->
+<!-- Pagination Controls: **filters carries the active filters into every link
+     so they survive paging -->
 <div class="pagination">
     {% if page > 1 %}
-        <a href="{{ url_for('main.index', page=page-1) }}">&lt; Previous</a>
+        <a href="{{ url_for('main.index', page=page-1, **filters) }}">&lt; Previous</a>
     {% endif %}
     <span>Page {{ page }} of {{ total_pages }}</span>
     {% if page < total_pages %}
-        <a href="{{ url_for('main.index', page=page+1) }}">Next &gt;</a>
+        <a href="{{ url_for('main.index', page=page+1, **filters) }}">Next &gt;</a>
     {% endif %}
 </div>
 {% endblock %}
