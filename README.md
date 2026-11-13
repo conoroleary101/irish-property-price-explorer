@@ -97,18 +97,38 @@ Live site: https://chrisbowes.pythonanywhere.com
 2. Web tab → Add a new web app → Manual configuration → Python 3.13.
 3. Set Source code to `/home/<username>/irish-property-price-explorer`.
 4. Set Virtualenv to `/home/<username>/.virtualenvs/ippe-venv`.
-5. Replace the WSGI file contents with:
+5. Replace the WSGI file contents with the following, using your own username and a secret token (see Automated deployment below):
 
+       import os
        import sys
+
+       os.environ["DEPLOY_SECRET"] = "<your-deploy-secret>"
+       os.environ["WSGI_FILE"] = "/var/www/<username>_pythonanywhere_com_wsgi.py"
+
        path = "/home/<username>/irish-property-price-explorer"
        if path not in sys.path:
            sys.path.insert(0, path)
+
        from app import create_app
        application = create_app()
 
 6. Click Reload, then check `/health` returns `{"status": "ok"}`.
 
-To update after changes are merged to main: in a Bash console run
+### Automated deployment
+
+Every push to `main` deploys automatically once the tests pass.
+
+- The `deploy` job in `.github/workflows/ci.yml` runs only after the `test` job succeeds, and only on `main`. If tests fail, nothing is deployed.
+- It sends a POST request to `/deploy` on the live site with a secret token. The route runs `git pull` and then touches the WSGI file, which makes PythonAnywhere reload the app.
+- This works on the PythonAnywhere free tier, which has no SSH access.
+- The token is stored as the `DEPLOY_SECRET` GitHub secret and in the WSGI file on PythonAnywhere. It is never committed to the repository.
+- If a deploy fails, the Actions log shows which step failed (`git pull` or `reload`).
+
+Limits:
+- New packages in `requirements.txt` still need a manual `pip install -r requirements.txt` in the server virtualenv.
+- The database is not rebuilt by a deploy. If the schema or data changes, run the loader on the server by hand.
+
+Manual fallback: in a PythonAnywhere Bash console run
 `cd irish-property-price-explorer && git pull`, then click Reload on the Web tab.
 
-Disk usage after deploying the skeleton: 36 MB of 512 MB (free tier).
+Disk usage with the database loaded: 192 MB of 512 MB (37.5%, 320 MB spare), measured 6 November 2026.
