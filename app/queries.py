@@ -109,3 +109,92 @@ def get_property_types():
         """
     ).fetchall()
     return [r["description_of_property"] for r in rows]
+
+
+def resolve_county(name):
+    """Match a county name against the data, ignoring case and surrounding space.
+
+    Returns the canonical spelling as stored, or None if it is not a county
+    present in the register. Doing the lookup here means an unrecognised name
+    is a None to handle rather than a query that quietly returns nothing.
+    """
+    if not name:
+        return None
+    target = name.strip().lower()
+    for county in get_counties():
+        if county.lower() == target:
+            return county
+    return None
+
+
+def get_county_comparison(county_a, county_b, year_from=None, year_to=None):
+    """Median sale price per year for two counties, for years both of them have.
+
+    The median is computed in SQL with a window function rather than by pulling
+    every matching row into Python. ROW_NUMBER() numbers the sales within each
+    county and year from cheapest to dearest, COUNT() gives how many there are,
+    and the rows whose number is (n+1)/2 or (n+2)/2 are the middle one when the
+    count is odd, or the middle two when it is even. Averaging those gives a
+    true median, not an average of everything.
+    """
+    db = get_db()
+
+    clauses = ["county IN (?, ?)", "not_full_market_price = 0"]
+    params = [county_a, county_b]
+
+    # Same index-friendly date comparison as build_where().
+    if year_from:
+        clauses.append("date_of_sale >= ?")
+        params.append(f"{year_from}-01-01")
+    if year_to:
+        clauses.append("date_of_sale <= ?")
+        params.append(f"{year_to}-12-31")
+
+    where = " AND ".join(clauses)
+
+    rows = db.execute(
+        f"""
+        WITH filtered AS (
+            SELECT county,
+                   CAST(substr(date_of_sale, 1, 4) AS INTEGER) AS year,
+                   price
+            FROM sales
+            WHERE {where}
+        ),
+        ranked AS (
+            SELECT county,
+                   year,
+                   price,
+                   ROW_NUMBER() OVER (PARTITION BY county, year ORDER BY price) AS rn,
+                   COUNT(*)     OVER (PARTITION BY county, year)                AS n
+            FROM filtered
+        )
+        SELECT county,
+               year,
+               AVG(price) AS median_price,
+               MAX(n)     AS sales
+        FROM ranked
+        WHERE rn IN ((n + 1) / 2, (n + 2) / 2)
+        GROUP BY county, year
+        ORDER BY year
+        """,
+        params,
+    ).fetchall()
+
+    by_year_a = {r["year"]: r for r in rows if r["county"] == county_a}
+    by_year_b = {r["year"]: r for r in rows if r["county"] == county_b}
+
+    # Only years both counties actually have sales in, so the comparison is
+    # like for like rather than implying one county had no market that year.
+    shared_years = sorted(set(by_year_a) & set(by_year_b))
+
+    return [
+        {
+            "year": year,
+            "a_median": by_year_a[year]["median_price"],
+            "a_sales": by_year_a[year]["sales"],
+            "b_median": by_year_b[year]["median_price"],
+            "b_sales": by_year_b[year]["sales"],
+        }
+        for year in shared_years
+    ]
