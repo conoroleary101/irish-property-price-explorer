@@ -1,46 +1,119 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h2>Compare two counties</h2>
+<h2>Property Sales</h2>
 
-{# IPPE-18 (Katie) replaces everything below with the real two-column layout,
-   the higher/lower indicator that does not rely on colour alone, the trend
-   chart from IPPE-19, and the phone-width stacking. This plain table exists
-   only so the route is demoable on its own. `counties` is passed in for the
-   two selectors. #}
-
-{% if message %}
-    <p class="empty-message">{{ message }}</p>
-{% else %}
-    <p class="result-summary">
-        Median sale price per year, {{ county_a }} against {{ county_b }}.
-        Showing the {{ rows | length }} year{{ "" if rows | length == 1 else "s" }}
-        both counties have sales in. Non-market sales are excluded.
-    </p>
-
-    <div class="table-container">
-        <table>
-            <thead>
-                <tr>
-                    <th>Year</th>
-                    <th>{{ county_a }} median</th>
-                    <th>{{ county_a }} sales</th>
-                    <th>{{ county_b }} median</th>
-                    <th>{{ county_b }} sales</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for row in rows %}
-                <tr>
-                    <td data-label="Year">{{ row.year }}</td>
-                    <td data-label="{{ county_a }} median" class="price-cell">{{ row.a_median | euro }}</td>
-                    <td data-label="{{ county_a }} sales">{{ "{:,}".format(row.a_sales) }}</td>
-                    <td data-label="{{ county_b }} median" class="price-cell">{{ row.b_median | euro }}</td>
-                    <td data-label="{{ county_b }} sales">{{ "{:,}".format(row.b_sales) }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+<!-- Filter Form (Now using REAL data from Conor's route) -->
+<form action="{{ url_for('main.index') }}" method="GET" class="filter-form">
+    
+    <div class="form-group">
+        <label for="county">County</label>
+        <select name="county" id="county">
+            <option value="">All Counties</option>
+            <!-- Using the real 'counties' variable -->
+            {% for county in counties %}
+                <option value="{{ county }}" {% if filters.county == county %}selected{% endif %}>
+                    {{ county }}
+                </option>
+            {% endfor %}
+        </select>
     </div>
-{% endif %}
+
+    <div class="form-group">
+        <label for="year_range">Year Range</label>
+        <div class="range-inputs">
+            <input type="number" name="year_from" placeholder="Min" min="2010" max="2026" value="{{ filters.year_from or '' }}">
+            <span>to</span>
+            <input type="number" name="year_to" placeholder="Max" min="2010" max="2026" value="{{ filters.year_to or '' }}">
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label for="price_range">Price (€)</label>
+        <div class="range-inputs">
+            <input type="number" name="price_min" placeholder="Min" step="10000" value="{{ filters.price_min or '' }}">
+            <span>to</span>
+            <input type="number" name="price_max" placeholder="Max" step="10000" value="{{ filters.price_max or '' }}">
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label for="property_type">Property Type</label>
+        <select name="property_type" id="property_type">
+            <option value="">Any Type</option>
+            <!-- Using the real 'property_types' variable -->
+            {% for ptype in property_types %}
+                <option value="{{ ptype }}" {% if filters.property_type == ptype %}selected{% endif %}>{{ ptype }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div class="form-actions">
+        <button type="submit" class="btn btn-primary">Apply Filters</button>
+        <a href="{{ url_for('main.index') }}" class="btn btn-secondary">Clear</a>
+    </div>
+</form>
+
+<!-- Stat Cards (Replacing the old summary paragraph) -->
+<div class="stats-panel">
+    <div class="stat-card">
+        <h3>Total Sales</h3>
+        <p class="stat-value">{{ total }}</p> <!-- Real variable -->
+    </div>
+    <div class="stat-card">
+        <h3>Average Price</h3>
+        <p class="stat-value">Pending</p> <!-- Waiting on Saadman -->
+    </div>
+    <div class="stat-card">
+        <h3>Median Price</h3>
+        <p class="stat-value">Pending</p> <!-- Waiting on Saadman -->
+    </div>
+    <div class="stat-card warning-card">
+        <h3>Excluded (Non-Market)</h3>
+        <p class="stat-value">{{ excluded }}</p> <!-- Real variable -->
+        <span class="info-text">*Not full market price</span>
+    </div>
+</div>
+
+<!-- Sales Table -->
+<div class="table-container">
+    {% if sales %}
+    <table>
+        <thead>
+            <tr>
+                <th>Date of Sale</th>
+                <th>Address</th>
+                <th>County</th>
+                <th>Price</th>
+                <th>Type</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in sales %}
+            <tr>
+                <td data-label="Date">{{ row['date_of_sale'] | dateformat }}</td>
+                <td data-label="Address">{{ row['address'] }}</td>
+                <td data-label="County">{{ row['county'] }}</td>
+                <td data-label="Price" class="price-cell">{{ row['price'] | euro }}</td>
+                <td data-label="Type">{{ row['description_of_property'] }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p class="empty-message">No sales found matching your criteria.</p>
+    {% endif %}
+</div>
+
+<!-- Conor's Pagination Code (Keeping the **filters!) -->
+<div class="pagination">
+    {% if page > 1 %}
+        <a href="{{ url_for('main.index', page=page-1, **filters) }}">&lt; Previous</a>
+    {% endif %}
+    <span>Page {{ page }} of {{ total_pages }}</span>
+    {% if page < total_pages %}
+        <a href="{{ url_for('main.index', page=page+1, **filters) }}">Next &gt;</a>
+    {% endif %}
+</div>
+
 {% endblock %}
