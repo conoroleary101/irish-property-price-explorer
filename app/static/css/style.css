@@ -1,4 +1,6 @@
-/* Basic reset */
+/* =========================================
+   BASE STYLES (Sprint 1)
+   ========================================= */
 * {
     box-sizing: border-box;
     margin: 0;
@@ -31,17 +33,19 @@ header {
 header a { color: white; text-decoration: none; font-weight: bold; }
 nav ul { list-style: none; display: flex; gap: 15px; }
 
-/* Table Styles (Desktop) */
+/* Table Styles */
 .table-container {
     width: 100%;
     margin-top: 20px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    overflow-x: auto;
 }
 
 table {
     width: 100%;
     border-collapse: collapse;
-    background: white;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
 th, td {
@@ -82,62 +86,9 @@ footer {
     text-align: center;
 }
 
-
-  /* MOBILE RESPONSIVENESS (Matches Wireframe) */
-@media (max-width: 600px) {
-    /* Hide the main nav and show a hamburger placeholder */
-    nav ul { display: none; }
-    
-    /* Hide table headers */
-    table thead {
-        display: none;
-    }
-    
-    /* Force table elements to act like blocks */
-    table, tbody, tr, td {
-        display: block;
-        width: 100%;
-    }
-    
-    /* Style each row as a Card */
-    table tr {
-        margin-bottom: 15px;
-        border: 2px solid #333;
-        border-radius: 12px;
-        padding: 15px;
-        background: white;
-    }
-    
-    /* Style each cell */
-    table td {
-        border: none;
-        padding: 5px 0;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-    
-    /* Add labels to the left of the data */
-    table td::before {
-        content: attr(data-label);
-        font-weight: 600;
-        color: #555;
-    }
-
-    /* The Price needs to sit at the top of the card, bold, without a label */
-    table td.price-cell {
-        font-size: 1.2rem;
-        font-weight: bold;
-        border-bottom: 1px solid #eee;
-        padding-bottom: 10px;
-        margin-bottom: 10px;
-        display: block;
-    }
-    table td.price-cell::before {
-        display: none; /* Hide the word "Price" */
-    }
-
-/* Form Layout */
+/* =========================================
+   SPRINT 2: Filter Form & Stats Panel (IPPE-17)
+   ========================================= */
 .filter-form {
     display: flex;
     flex-wrap: wrap;
@@ -147,7 +98,7 @@ footer {
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     margin-bottom: 30px;
-    align-items: flex-end; /* Aligns buttons with inputs */
+    align-items: flex-end;
 }
 
 .form-group {
@@ -195,6 +146,7 @@ footer {
     cursor: pointer;
     font-weight: bold;
     font-size: 1rem;
+    text-decoration: none;
 }
 
 .btn-primary {
@@ -207,11 +159,10 @@ footer {
 .btn-secondary {
     background-color: #e0e0e0;
     color: #333;
-    text-decoration: none;
     text-align: center;
 }
 
-/* Stats Panel */
+/* Stat Cards */
 .stats-panel {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -241,7 +192,7 @@ footer {
 }
 
 .warning-card {
-    border-left-color: #f57c00; /* Orange warning color */
+    border-left-color: #f57c00;
 }
 
 .info-text {
@@ -251,22 +202,9 @@ footer {
     margin-top: 5px;
 }
 
-/* Mobile Adjustments */
-@media (max-width: 600px) {
-    .filter-form {
-        flex-direction: column;
-        align-items: stretch;
-    }
-    .form-actions {
-        flex-direction: column;
-    }
-    .btn {
-        width: 100%;
-    }
-}
-
-
-/* Badges for Accessibility (IPPE-117) */
+/* =========================================
+   SPRINT 2: Comparison Page (IPPE-18)
+   ========================================= */
 .badge {
     display: inline-block;
     padding: 4px 8px;
@@ -276,12 +214,11 @@ footer {
 }
 
 .badge-higher {
-    background-color: #e3f2fd; /* Light blue background */
-    color: #0d47a1; /* Dark blue text */
+    background-color: #e3f2fd;
+    color: #0d47a1;
     border: 1px solid #90caf9;
 }
 
-/* Chart Placeholder */
 .chart-container {
     background: white;
     padding: 20px;
@@ -302,15 +239,55 @@ footer {
     border-radius: 4px;
 }
 
-/* Mobile adjustments for the comparison table */
+/* =========================================
+   MOBILE RESPONSIVENESS (375px - 600px)
+   ========================================= */
 @media (max-width: 600px) {
-    /* We already have table stacking CSS from IPPE-17, 
-       but we need to make sure the difference badge fits nicely */
+    /* Header */
+    nav ul { display: none; }
+    
+    /* Form & Buttons */
+    .filter-form { flex-direction: column; align-items: stretch; }
+    .form-actions { flex-direction: column; }
+    .btn { width: 100%; }
+
+    /* Table Stacking (IPPE-63) */
+    table thead { display: none; }
+    table, tbody, tr, td { display: block; width: 100%; }
+    table tr {
+        margin-bottom: 15px;
+        border: 2px solid #333;
+        border-radius: 12px;
+        padding: 15px;
+        background: white;
+    }
+    table td {
+        border: none;
+        padding: 5px 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    table td::before {
+        content: attr(data-label);
+        font-weight: 600;
+        color: #555;
+    }
+    table td.price-cell {
+        font-size: 1.2rem;
+        font-weight: bold;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 10px;
+        margin-bottom: 10px;
+        display: block;
+    }
+    table td.price-cell::before { display: none; }
+
+    /* Comparison Page Mobile tweak */
     table td[data-label="Difference"] {
         flex-direction: column;
         align-items: flex-start;
         gap: 5px;
         padding-top: 10px;
     }
-}
 }

@@ -1,22 +1,18 @@
 {% extends "base.html" %}
 
 {% block content %}
-
-<!-- MOCK DATA FOR TESTING - DELETE LATER -->
-{% set mock_counties = ['Cork', 'Dublin', 'Galway', 'Kerry', 'Limerick'] %}
-{% set mock_stats = {'count': 1245, 'avg': 342500, 'median': 310000, 'excluded': 45} %}
-<!-- END MOCK DATA -->
-
 <h2>Property Sales</h2>
 
-<form action="{{ url_for('index') }}" method="GET" class="filter-form">
+<!-- Filter Form (Now using REAL data from Conor's route) -->
+<form action="{{ url_for('main.index') }}" method="GET" class="filter-form">
     
     <div class="form-group">
         <label for="county">County</label>
         <select name="county" id="county">
             <option value="">All Counties</option>
-            {% for county in mock_counties %}
-                <option value="{{ county }}" {% if request.args.get('county') == county %}selected{% endif %}>
+            <!-- Using the real 'counties' variable -->
+            {% for county in counties %}
+                <option value="{{ county }}" {% if filters.county == county %}selected{% endif %}>
                     {{ county }}
                 </option>
             {% endfor %}
@@ -26,18 +22,18 @@
     <div class="form-group">
         <label for="year_range">Year Range</label>
         <div class="range-inputs">
-            <input type="number" name="min_year" placeholder="Min" min="2010" max="2026" value="{{ request.args.get('min_year', '') }}">
+            <input type="number" name="year_from" placeholder="Min" min="2010" max="2026" value="{{ filters.year_from or '' }}">
             <span>to</span>
-            <input type="number" name="max_year" placeholder="Max" min="2010" max="2026" value="{{ request.args.get('max_year', '') }}">
+            <input type="number" name="year_to" placeholder="Max" min="2010" max="2026" value="{{ filters.year_to or '' }}">
         </div>
     </div>
 
     <div class="form-group">
         <label for="price_range">Price (€)</label>
         <div class="range-inputs">
-            <input type="number" name="min_price" placeholder="Min" step="10000" value="{{ request.args.get('min_price', '') }}">
+            <input type="number" name="price_min" placeholder="Min" step="10000" value="{{ filters.price_min or '' }}">
             <span>to</span>
-            <input type="number" name="max_price" placeholder="Max" step="10000" value="{{ request.args.get('max_price', '') }}">
+            <input type="number" name="price_max" placeholder="Max" step="10000" value="{{ filters.price_max or '' }}">
         </div>
     </div>
 
@@ -45,38 +41,41 @@
         <label for="property_type">Property Type</label>
         <select name="property_type" id="property_type">
             <option value="">Any Type</option>
-            <option value="House" {% if request.args.get('property_type') == 'House' %}selected{% endif %}>House</option>
-            <option value="Apartment" {% if request.args.get('property_type') == 'Apartment' %}selected{% endif %}>Apartment</option>
-            <option value="Site" {% if request.args.get('property_type') == 'Site' %}selected{% endif %}>Site</option>
+            <!-- Using the real 'property_types' variable -->
+            {% for ptype in property_types %}
+                <option value="{{ ptype }}" {% if filters.property_type == ptype %}selected{% endif %}>{{ ptype }}</option>
+            {% endfor %}
         </select>
     </div>
 
     <div class="form-actions">
         <button type="submit" class="btn btn-primary">Apply Filters</button>
-        <a href="{{ url_for('index') }}" class="btn btn-secondary">Clear</a>
+        <a href="{{ url_for('main.index') }}" class="btn btn-secondary">Clear</a>
     </div>
 </form>
 
+<!-- Stat Cards (Replacing the old summary paragraph) -->
 <div class="stats-panel">
     <div class="stat-card">
         <h3>Total Sales</h3>
-        <p class="stat-value">{{ mock_stats.count }}</p>
+        <p class="stat-value">{{ total }}</p> <!-- Real variable -->
     </div>
     <div class="stat-card">
         <h3>Average Price</h3>
-        <p class="stat-value">{{ mock_stats.avg | euro }}</p>
+        <p class="stat-value">Pending</p> <!-- Waiting on Saadman -->
     </div>
     <div class="stat-card">
         <h3>Median Price</h3>
-        <p class="stat-value">{{ mock_stats.median | euro }}</p>
+        <p class="stat-value">Pending</p> <!-- Waiting on Saadman -->
     </div>
     <div class="stat-card warning-card">
         <h3>Excluded (Non-Market)</h3>
-        <p class="stat-value">{{ mock_stats.excluded }}</p>
+        <p class="stat-value">{{ excluded }}</p> <!-- Real variable -->
         <span class="info-text">*Not full market price</span>
     </div>
 </div>
 
+<!-- Sales Table -->
 <div class="table-container">
     {% if sales %}
     <table>
@@ -106,14 +105,14 @@
     {% endif %}
 </div>
 
+<!-- Conor's Pagination Code (Keeping the **filters!) -->
 <div class="pagination">
     {% if page > 1 %}
-        <a href="{{ url_for('index', page=page-1) }}">&lt; Previous</a>
+        <a href="{{ url_for('main.index', page=page-1, **filters) }}">&lt; Previous</a>
     {% endif %}
-    <span>Page {{ page }}</span>
-    <!-- CONORS PAGINATION CODE -->
-    {% if sales|length == 50 %}
-        <a href="{{ url_for('index', page=page+1) }}">Next &gt;</a>
+    <span>Page {{ page }} of {{ total_pages }}</span>
+    {% if page < total_pages %}
+        <a href="{{ url_for('main.index', page=page+1, **filters) }}">Next &gt;</a>
     {% endif %}
 </div>
 
