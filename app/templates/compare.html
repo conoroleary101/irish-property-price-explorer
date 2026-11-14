@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Compare two counties</h2>
+
+{# IPPE-18 (Katie) replaces everything below with the real two-column layout,
+   the higher/lower indicator that does not rely on colour alone, the trend
+   chart from IPPE-19, and the phone-width stacking. This plain table exists
+   only so the route is demoable on its own. `counties` is passed in for the
+   two selectors. #}
+
+{% if message %}
+    <p class="empty-message">{{ message }}</p>
+{% else %}
+    <p class="result-summary">
+        Median sale price per year, {{ county_a }} against {{ county_b }}.
+        Showing the {{ rows | length }} year{{ "" if rows | length == 1 else "s" }}
+        both counties have sales in. Non-market sales are excluded.
+    </p>
+
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Year</th>
+                    <th>{{ county_a }} median</th>
+                    <th>{{ county_a }} sales</th>
+                    <th>{{ county_b }} median</th>
+                    <th>{{ county_b }} sales</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in rows %}
+                <tr>
+                    <td data-label="Year">{{ row.year }}</td>
+                    <td data-label="{{ county_a }} median" class="price-cell">{{ row.a_median | euro }}</td>
+                    <td data-label="{{ county_a }} sales">{{ "{:,}".format(row.a_sales) }}</td>
+                    <td data-label="{{ county_b }} median" class="price-cell">{{ row.b_median | euro }}</td>
+                    <td data-label="{{ county_b }} sales">{{ "{:,}".format(row.b_sales) }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endif %}
+{% endblock %}

@@ -1,6 +1,12 @@
 from flask import Blueprint, render_template, request
 
-from .queries import get_counties, get_property_types, get_sales_page
+from .queries import (
+    get_counties,
+    get_county_comparison,
+    get_property_types,
+    get_sales_page,
+    resolve_county,
+)
 
 bp = Blueprint("main", __name__)
 
@@ -80,6 +86,60 @@ def index():
         filters=filters,
         counties=get_counties(),
         property_types=get_property_types(),
+    )
+
+
+@bp.route("/compare")
+def compare():
+    """Compare median price per year for two counties side by side."""
+    raw_a = _str_arg("county_a")
+    raw_b = _str_arg("county_b")
+
+    year_from = _int_arg("year_from", MIN_YEAR, MAX_YEAR)
+    year_to = _int_arg("year_to", MIN_YEAR, MAX_YEAR)
+    if year_from and year_to and year_from > year_to:
+        year_from, year_to = year_to, year_from
+
+    county_a = resolve_county(raw_a)
+    county_b = resolve_county(raw_b)
+
+    rows = []
+    message = None
+
+    if not raw_a or not raw_b:
+        message = "Pick two counties to compare."
+    elif county_a is None or county_b is None:
+        unknown = [
+            raw for raw, resolved in ((raw_a, county_a), (raw_b, county_b))
+            if resolved is None
+        ]
+        message = (
+            "Not a county in the register: "
+            + ", ".join(unknown)
+            + "."
+        )
+    elif county_a == county_b:
+        message = (
+            f"Pick two different counties. Comparing {county_a} with itself "
+            "would not tell you anything."
+        )
+    else:
+        rows = get_county_comparison(county_a, county_b, year_from, year_to)
+        if not rows:
+            message = (
+                f"No years where both {county_a} and {county_b} have sales "
+                "in that range."
+            )
+
+    return render_template(
+        "compare.html",
+        rows=rows,
+        message=message,
+        county_a=county_a or raw_a,
+        county_b=county_b or raw_b,
+        year_from=year_from,
+        year_to=year_to,
+        counties=get_counties(),
     )
 
 
