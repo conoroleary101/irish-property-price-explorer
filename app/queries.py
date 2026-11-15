@@ -198,3 +198,64 @@ def get_county_comparison(county_a, county_b, year_from=None, year_to=None):
         }
         for year in shared_years
     ]
+
+def get_aggregate_stats(filters=None):
+    """Return count, mean, median and excluded count for filtered sales.
+
+    Uses the existing shared WHERE builder.
+    Non-market sales are excluded from price statistics.
+    """
+    filters = filters or {}
+    db = get_db()
+    where, params = build_where(filters)
+
+    summary = db.execute(
+        f"""
+        SELECT
+            COUNT(CASE WHEN not_full_market_price = 0 THEN 1 END)
+                AS sale_count,
+            AVG(CASE WHEN not_full_market_price = 0 THEN price END)
+                AS mean_price,
+            COUNT(CASE WHEN not_full_market_price = 1 THEN 1 END)
+                AS excluded_count
+        FROM sales
+        WHERE {where}
+        """,
+        params,
+    ).fetchone()
+
+    count = summary["sale_count"]
+    excluded = summary["excluded_count"]
+
+    if count == 0:
+        return {
+            "count": 0,
+            "mean": 0,
+            "median": 0,
+            "excluded": excluded,
+        }
+
+    # Find the middle one or two sorted prices.
+    middle_rows = 1 if count % 2 else 2
+    offset = (count - 1) // 2
+
+    median = db.execute(
+        f"""
+        SELECT AVG(price) AS median_price
+        FROM (
+            SELECT price
+            FROM sales
+            WHERE {where} AND not_full_market_price = 0
+            ORDER BY price
+            LIMIT ? OFFSET ?
+        )
+        """,
+        params + [middle_rows, offset],
+    ).fetchone()["median_price"]
+
+    return {
+        "count": count,
+        "mean": summary["mean_price"],
+        "median": median,
+        "excluded": excluded,
+    }

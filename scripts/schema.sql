@@ -18,3 +18,17 @@ ON sales(county);
 
 CREATE INDEX IF NOT EXISTS idx_sales_date
 ON sales(date_of_sale);
+
+-- Additional indexes for Sprint 2 price aggregations.
+
+CREATE INDEX IF NOT EXISTS idx_sales_market_price
+ON sales(price)
+WHERE not_full_market_price = 0;
+
+CREATE INDEX IF NOT EXISTS idx_sales_market_type_price
+ON sales(description_of_property, price)
+WHERE not_full_market_price = 0;
+
+CREATE INDEX IF NOT EXISTS idx_sales_market_county_price
+ON sales(county, price)
+WHERE not_full_market_price = 0;
