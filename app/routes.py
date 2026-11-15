@@ -1,5 +1,6 @@
-from flask import Blueprint, render_template, request
+from flask import Blueprint, Response, render_template, request
 
+from .charts import median_price_by_year, render_trend_chart
 from .queries import (
     get_counties,
     get_county_comparison,
@@ -141,6 +142,39 @@ def compare():
         year_to=year_to,
         counties=get_counties(),
     )
+
+
+@bp.route("/chart/trend.png")
+def trend_chart():
+    filters = read_filters()
+    label = filters.get("county", "All counties")
+    png = render_trend_chart(
+        {label: median_price_by_year(filters)},
+        f"Median sale price per year: {label}",
+    )
+    return Response(png, mimetype="image/png")
+
+
+@bp.route("/chart/compare.png")
+def compare_chart():
+    filters = read_filters()
+    filters.pop("county", None)
+
+    counties = []
+    for raw in (_str_arg("county_a"), _str_arg("county_b")):
+        county = resolve_county(raw)
+        if county and county not in counties:
+            counties.append(county)
+
+    series = {
+        county: median_price_by_year({**filters, "county": county})
+        for county in counties
+    }
+    png = render_trend_chart(
+        series,
+        "Median sale price per year: " + " vs ".join(counties),
+    )
+    return Response(png, mimetype="image/png")
 
 
 @bp.route("/health")
