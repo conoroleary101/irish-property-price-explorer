@@ -7,6 +7,7 @@ from .queries import (
     get_property_types,
     get_sales_page,
     resolve_county,
+    get_aggregate_stats,
 )
 
 bp = Blueprint("main", __name__)
@@ -76,6 +77,7 @@ def index():
     filters = read_filters()
 
     sales, page, total_pages, total, excluded = get_sales_page(page, filters)
+    stats = get_aggregate_stats(filters)
 
     return render_template(
         "index.html",
@@ -87,6 +89,8 @@ def index():
         filters=filters,
         counties=get_counties(),
         property_types=get_property_types(),
+        mean=stats["mean"],
+        median=stats["median"],
     )
 
 
