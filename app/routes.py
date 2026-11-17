@@ -145,6 +145,13 @@ def compare():
         year_from=year_from,
         year_to=year_to,
         counties=get_counties(),
+        filters=read_filters(),
+        property_types=get_property_types(),
+        sales=[],
+        page=1,
+        total_pages=1,
+        total=0,
+        excluded=0,
     )
 
 
