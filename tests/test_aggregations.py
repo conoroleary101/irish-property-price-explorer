@@ -1,8 +1,10 @@
 import sqlite3
+import statistics
 
 import pytest
 
 from app import queries
+from scripts.conversions import clean_price
 
 
 @pytest.fixture
@@ -110,3 +112,31 @@ def test_no_matching_rows(sample_db):
         "median": 0,
         "excluded": 0,
     }
+
+
+def test_fixture_stats_match_hand_calculation(fixture_rows, price_col):
+    prices = [
+        clean_price(row[price_col])
+        for row in fixture_rows
+        if clean_price(row[price_col]) is not None
+    ]
+
+    assert len(prices) == 18
+    assert sum(prices) == 6_150_000
+    assert statistics.median(prices) == 300_000
+    assert pytest.approx(sum(prices) / len(prices), rel=1e-9) == 341_666.6666666667
+
+
+def test_aggregate_stats_exclude_non_market_rows(sample_db):
+    sample_db.execute(
+        "INSERT INTO sales VALUES (?, ?, ?, ?, ?)",
+        ("Cork", "2024-04-01", 750000, 1, "New"),
+    )
+    sample_db.commit()
+
+    result = queries.get_aggregate_stats({"county": "Cork"})
+
+    assert result["count"] == 3
+    assert result["mean"] == 200000
+    assert result["median"] == 200000
+    assert result["excluded"] == 2
