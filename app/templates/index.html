@@ -60,13 +60,13 @@
         <h3>Total Sales</h3>
         <p class="stat-value">{{ total }}</p> <!-- Real variable -->
     </div>
-    <div class="stat-card">
+        <div class="stat-card">
         <h3>Average Price</h3>
-        <p class="stat-value">Pending</p> <!-- Waiting on Saadman -->
+        <p class="stat-value">{{ mean | euro }}</p> 
     </div>
     <div class="stat-card">
         <h3>Median Price</h3>
-        <p class="stat-value">Pending</p> <!-- Waiting on Saadman -->
+        <p class="stat-value">{{ median | euro }}</p> 
     </div>
     <div class="stat-card warning-card">
         <h3>Excluded (Non-Market)</h3>
@@ -102,6 +102,31 @@
     </table>
     {% else %}
     <p class="empty-message">No sales found matching your criteria.</p>
+    {% endif %}
+</div>
+
+<!-- Trend Chart -->
+<div class="chart-container" style="margin-bottom: 30px;">
+    <h3>Price Trend Over Time</h3>
+    <img src="{{ url_for('main.trend_chart', **filters) }}" alt="Trend Chart" style="max-width: 100%; height: auto;">
+</div>
+
+<!-- ========================================== -->
+<!-- NEW: AI Commentary Panel (IPPE-27)         -->
+<!-- ========================================== -->
+<div class="ai-commentary-panel">
+    <div class="ai-header">
+        <h3>Market Analysis</h3>
+        <span class="ai-badge">AI Generated</span>
+    </div>
+    
+    {% if commentary %}
+        <p class="commentary-text">{{ commentary }}</p>
+    {% else %}
+        <!-- Shown when commentary is unavailable -->
+        <div class="commentary-unavailable">
+            <p>AI commentary is currently unavailable for this specific selection of properties. Try adjusting your filters or selecting a broader year range.</p>
+        </div>
     {% endif %}
 </div>
 
