@@ -8,3 +8,4 @@ Werkzeug==3.1.9
 pytest
 pytest-cov
 matplotlib==3.11.2
+requests==2.32.5
