@@ -105,6 +105,28 @@
     {% endif %}
 </div>
 
+<!-- Trend Chart -->
+<div class="chart-container" style="margin-bottom: 30px;">
+    <h3>Price Trend Over Time</h3>
+    <img src="{{ url_for('main.trend_chart', **filters) }}" alt="Trend Chart" style="max-width: 100%; height: auto;">
+</div>
+
+<!-- AI Commentary Panel (IPPE-27) -->
+<div class="ai-commentary-panel">
+    <div class="ai-header">
+        <h3>Market Analysis</h3>
+        <span class="ai-badge">AI Generated</span>
+    </div>
+    
+    {% if commentary %}
+        <p class="commentary-text">{{ commentary }}</p>
+    {% else %}
+        <div class="commentary-unavailable">
+            <p>AI commentary is currently unavailable for this specific selection of properties. Try adjusting your filters or selecting a broader year range.</p>
+        </div>
+    {% endif %}
+</div>
+
 <!-- Conor's Pagination Code (Keeping the **filters!) -->
 <div class="pagination">
     {% if page > 1 %}
