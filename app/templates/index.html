@@ -10,7 +10,6 @@
         <label for="county">County</label>
         <select name="county" id="county">
             <option value="">All Counties</option>
-            <!-- Using the real 'counties' variable -->
             {% for county in counties %}
                 <option value="{{ county }}" {% if filters.county == county %}selected{% endif %}>
                     {{ county }}
@@ -41,7 +40,6 @@
         <label for="property_type">Property Type</label>
         <select name="property_type" id="property_type">
             <option value="">Any Type</option>
-            <!-- Using the real 'property_types' variable -->
             {% for ptype in property_types %}
                 <option value="{{ ptype }}" {% if filters.property_type == ptype %}selected{% endif %}>{{ ptype }}</option>
             {% endfor %}
@@ -58,7 +56,7 @@
 <div class="stats-panel">
     <div class="stat-card">
         <h3>Total Sales</h3>
-        <p class="stat-value">{{ total }}</p> <!-- Real variable -->
+        <p class="stat-value">{{ total }}</p>
     </div>
         <div class="stat-card">
         <h3>Average Price</h3>
@@ -70,7 +68,7 @@
     </div>
     <div class="stat-card warning-card">
         <h3>Excluded (Non-Market)</h3>
-        <p class="stat-value">{{ excluded }}</p> <!-- Real variable -->
+        <p class="stat-value">{{ excluded }}</p>
         <span class="info-text">*Not full market price</span>
     </div>
 </div>
@@ -111,9 +109,7 @@
     <img src="{{ url_for('main.trend_chart', **filters) }}" alt="Trend Chart" style="max-width: 100%; height: auto;">
 </div>
 
-<!-- ========================================== -->
-<!-- NEW: AI Commentary Panel (IPPE-27)         -->
-<!-- ========================================== -->
+<!-- AI Commentary Panel -->
 <div class="ai-commentary-panel">
     <div class="ai-header">
         <h3>Market Analysis</h3>
@@ -123,7 +119,6 @@
     {% if commentary %}
         <p class="commentary-text">{{ commentary }}</p>
     {% else %}
-        <!-- Shown when commentary is unavailable -->
         <div class="commentary-unavailable">
             <p>AI commentary is currently unavailable for this specific selection of properties. Try adjusting your filters or selecting a broader year range.</p>
         </div>

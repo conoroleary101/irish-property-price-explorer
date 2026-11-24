@@ -28,7 +28,7 @@
 </form>
 
 {% if message %}
-    <p class="empty-message">{{ message }}</p>
+    <p class="empty-message" style="margin-bottom: 20px; font-weight: bold;">{{ message }}</p>
 {% endif %}
 
 {% if rows %}
@@ -67,7 +67,6 @@
 <div class="chart-container">
     <h3>Price Trend Over Time</h3>
     {% if county_a and county_b %}
-        <!-- The chart route is built by Christopher/Conor -->
         <img src="{{ url_for('main.compare_chart', county_a=county_a, county_b=county_b) }}" alt="Comparison Chart" style="max-width: 100%; height: auto;">
     {% else %}
         <div class="chart-placeholder"><p>Select two counties to see the trend chart.</p></div>
