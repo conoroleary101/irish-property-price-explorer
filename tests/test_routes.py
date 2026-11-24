@@ -70,6 +70,18 @@ def test_index_route_empty_result_set_is_handled(app):
     assert "No sales found matching your criteria." in response.get_data(as_text=True)
 
 
+def test_index_route_renders_when_commentary_is_unavailable(app, monkeypatch):
+    def unavailable(summary):
+        raise RuntimeError("commentary API unavailable")
+
+    monkeypatch.setattr("app.routes.generate_commentary", unavailable)
+
+    response = app.test_client().get("/?county=Cork")
+
+    assert response.status_code == 200
+    assert b"Property Sales" in response.data
+
+
 @pytest.mark.parametrize(
     "query_string",
     [

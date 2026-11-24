@@ -1,6 +1,7 @@
 from flask import Blueprint, Response, render_template, request
 
 from .charts import median_price_by_year, render_trend_chart
+from .commentary import generate_commentary
 from .queries import (
     get_counties,
     get_county_comparison,
@@ -79,6 +80,20 @@ def index():
     sales, page, total_pages, total, excluded = get_sales_page(page, filters)
     stats = get_aggregate_stats(filters)
 
+    summary = {
+        "count": stats["count"],
+        "mean": stats["mean"],
+        "median": stats["median"],
+        "excluded": stats["excluded"],
+        "county": filters.get("county"),
+        "year_from": filters.get("year_from"),
+        "year_to": filters.get("year_to"),
+    }
+    try:
+        commentary = generate_commentary(summary)
+    except Exception:
+        commentary = None
+
     return render_template(
         "index.html",
         sales=sales,
@@ -91,6 +106,7 @@ def index():
         property_types=get_property_types(),
         mean=stats["mean"],
         median=stats["median"],
+        commentary=commentary,
     )
 
 
