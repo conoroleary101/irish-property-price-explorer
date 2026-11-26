@@ -1,7 +1,8 @@
-"""Generate short, filtered property-price commentary.
+"""Plain-English commentary on the figures for the current selection.
 
-The API is isolated behind this module so tests and the route never need a real
-credential or network connection.
+The model only ever sees the summary dictionary (counts, mean, median and the
+filters that produced them), never raw sales rows. The provider is Groq's
+free tier, called through its OpenAI-compatible chat completions endpoint.
 """
 
 import json
@@ -10,21 +11,33 @@ from threading import Lock
 
 import requests
 
+GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions"
+DEFAULT_MODEL = "llama-3.1-8b-instant"
+DEFAULT_TIMEOUT = 10  # seconds
 
+# Shown by callers that want text rather than None when there is no commentary.
 FALLBACK_COMMENTARY = (
     "Commentary is temporarily unavailable. Use the sales and summary figures "
     "below to interpret the results."
 )
 FALLBACK_TEXT = FALLBACK_COMMENTARY
 
-_DEFAULT_API_URL = "https://api.openai.com/v1/chat/completions"
-_DEFAULT_MODEL = "gpt-4o-mini"
+SYSTEM_PROMPT = (
+    "You explain Irish residential property price figures to people with no "
+    "technical or financial background. Write one short paragraph of plain "
+    "English, no more than 60 words. Use only the figures you are given. Do not "
+    "add any other numbers, dates, causes, comparisons or predictions, and do "
+    "not speculate about why prices are what they are."
+)
+
+# Successful answers only. Failures are never cached, so a brief outage does
+# not leave a selection without commentary until the app restarts.
 _commentary_cache = {}
 _cache_lock = Lock()
 
 
 def build_commentary_prompt(summary):
-    """Build a deterministic prompt from a known summary dictionary."""
+    """Build the user prompt from the summary dictionary alone."""
     county = summary.get("county") or "all counties"
     year_from = summary.get("year_from")
     year_to = summary.get("year_to")
@@ -34,12 +47,11 @@ def build_commentary_prompt(summary):
         else "for the available period"
     )
     sales = summary.get("count", summary.get("sale_count", 0))
-    mean = summary.get("mean", summary.get("mean_price", 0))
-    median = summary.get("median", summary.get("median_price", 0))
+    mean = summary.get("mean", summary.get("mean_price", 0)) or 0
+    median = summary.get("median", summary.get("median_price", 0)) or 0
     excluded = summary.get("excluded", summary.get("excluded_count", 0))
     return (
-        "Write a concise, factual commentary of no more than 60 words for an "
-        "Irish residential property price report. Do not invent or speculate.\n"
+        "Describe these figures in plain English.\n"
         f"Scope: {county}; {period}.\n"
         f"Sales: {sales}.\n"
         f"Mean price: €{mean:,.2f}.\n"
@@ -49,7 +61,7 @@ def build_commentary_prompt(summary):
 
 
 def build_prompt(summary):
-    """Backward-friendly short name for the prompt builder."""
+    """Short alias for build_commentary_prompt."""
     return build_commentary_prompt(summary)
 
 
@@ -62,56 +74,62 @@ def _cache_key(summary):
     return json.dumps(summary, sort_keys=True, default=str)
 
 
+def _api_key():
+    return os.environ.get("GROQ_API_KEY") or os.environ.get("COMMENTARY_API_KEY")
+
+
 def _extract_text(payload):
     choices = payload.get("choices") or []
     if choices:
-        message = choices[0].get("message") or {}
-        content = message.get("content")
+        content = (choices[0].get("message") or {}).get("content")
         if isinstance(content, str) and content.strip():
             return content.strip()
-        text = choices[0].get("text")
-        if isinstance(text, str) and text.strip():
-            return text.strip()
-    output_text = payload.get("output_text")
-    if isinstance(output_text, str) and output_text.strip():
-        return output_text.strip()
     return None
 
 
-def generate_commentary(summary, api_key=None, timeout=10):
-    """Return commentary, caching identical summaries and swallowing API failures."""
+def generate_commentary(summary, api_key=None, timeout=DEFAULT_TIMEOUT):
+    """Return a short paragraph about the summary, or None if none is available.
+
+    None is returned, never raised, when there is no API key, the request times
+    out, the API returns an error, or the reply has no text. The caller decides
+    what to show instead.
+    """
     key = _cache_key(summary)
     with _cache_lock:
         if key in _commentary_cache:
             return _commentary_cache[key]
 
-    key_name = api_key or os.environ.get("COMMENTARY_API_KEY") or os.environ.get("OPENAI_API_KEY")
-    if not key_name:
-        result = FALLBACK_COMMENTARY
-    else:
-        prompt = build_commentary_prompt(summary)
-        try:
-            response = requests.post(
-                os.environ.get("COMMENTARY_API_URL", _DEFAULT_API_URL),
-                headers={
-                    "Authorization": f"Bearer {key_name}",
-                    "Content-Type": "application/json",
-                },
-                json={
-                    "model": os.environ.get("COMMENTARY_MODEL", _DEFAULT_MODEL),
-                    "messages": [{"role": "user", "content": prompt}],
-                    "temperature": 0.2,
-                },
-                timeout=timeout,
-            )
-            response.raise_for_status()
-            result = _extract_text(response.json()) or FALLBACK_COMMENTARY
-        except Exception:
-            result = FALLBACK_COMMENTARY
+    api_key = api_key or _api_key()
+    if not api_key:
+        return None
 
-    with _cache_lock:
-        _commentary_cache[key] = result
-    return result
+    try:
+        response = requests.post(
+            os.environ.get("COMMENTARY_API_URL", GROQ_API_URL),
+            headers={
+                "Authorization": f"Bearer {api_key}",
+                "Content-Type": "application/json",
+            },
+            json={
+                "model": os.environ.get("COMMENTARY_MODEL", DEFAULT_MODEL),
+                "messages": [
+                    {"role": "system", "content": SYSTEM_PROMPT},
+                    {"role": "user", "content": build_commentary_prompt(summary)},
+                ],
+                "temperature": 0.2,
+                "max_tokens": 150,
+            },
+            timeout=timeout,
+        )
+        response.raise_for_status()
+        text = _extract_text(response.json())
+    except Exception:
+        return None
+
+    if text:
+        with _cache_lock:
+            _commentary_cache[key] = text
+    return text
 
 
 get_commentary = generate_commentary
