@@ -12,7 +12,13 @@ from threading import Lock
 import requests
 
 GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions"
-DEFAULT_MODEL = "llama-3.1-8b-instant"
+DEFAULT_MODEL = "openai/gpt-oss-20b"
+# gpt-oss models reason before answering, and the reasoning counts towards
+# max_tokens. At default effort the reasoning used the whole budget and the
+# answer came back empty (tested on PythonAnywhere, 26 November 2026), so
+# these models are asked for low effort and given a larger token budget.
+REASONING_MODEL_PREFIX = "openai/gpt-oss"
+MAX_TOKENS = 400
 DEFAULT_TIMEOUT = 10  # seconds
 
 # Shown by callers that want text rather than None when there is no commentary.
@@ -103,6 +109,19 @@ def generate_commentary(summary, api_key=None, timeout=DEFAULT_TIMEOUT):
     if not api_key:
         return None
 
+    model = os.environ.get("COMMENTARY_MODEL", DEFAULT_MODEL)
+    payload = {
+        "model": model,
+        "messages": [
+            {"role": "system", "content": SYSTEM_PROMPT},
+            {"role": "user", "content": build_commentary_prompt(summary)},
+        ],
+        "temperature": 0.2,
+        "max_tokens": MAX_TOKENS,
+    }
+    if model.startswith(REASONING_MODEL_PREFIX):
+        payload["reasoning_effort"] = "low"
+
     try:
         response = requests.post(
             os.environ.get("COMMENTARY_API_URL", GROQ_API_URL),
@@ -110,15 +129,7 @@ def generate_commentary(summary, api_key=None, timeout=DEFAULT_TIMEOUT):
                 "Authorization": f"Bearer {api_key}",
                 "Content-Type": "application/json",
             },
-            json={
-                "model": os.environ.get("COMMENTARY_MODEL", DEFAULT_MODEL),
-                "messages": [
-                    {"role": "system", "content": SYSTEM_PROMPT},
-                    {"role": "user", "content": build_commentary_prompt(summary)},
-                ],
-                "temperature": 0.2,
-                "max_tokens": 150,
-            },
+            json=payload,
             timeout=timeout,
         )
         response.raise_for_status()

@@ -1,6 +1,7 @@
 import requests
 
 from app.commentary import (
+    DEFAULT_MODEL,
     GROQ_API_URL,
     SYSTEM_PROMPT,
     build_commentary_prompt,
@@ -66,6 +67,40 @@ def test_only_the_summary_is_sent(monkeypatch):
     messages = sent["json"]["messages"]
     assert [m["role"] for m in messages] == ["system", "user"]
     assert messages[1]["content"] == build_commentary_prompt(SUMMARY)
+
+
+def test_reasoning_model_is_asked_for_low_effort(monkeypatch):
+    clear_commentary_cache()
+    monkeypatch.setenv("GROQ_API_KEY", "test-key")
+    monkeypatch.delenv("COMMENTARY_MODEL", raising=False)
+    sent = {}
+
+    def post(url, **kwargs):
+        sent.update(kwargs["json"])
+        return OkResponse()
+
+    monkeypatch.setattr("app.commentary.requests.post", post)
+    generate_commentary(SUMMARY)
+
+    assert sent["model"] == DEFAULT_MODEL
+    assert sent["reasoning_effort"] == "low"
+
+
+def test_other_models_are_not_sent_reasoning_effort(monkeypatch):
+    clear_commentary_cache()
+    monkeypatch.setenv("GROQ_API_KEY", "test-key")
+    monkeypatch.setenv("COMMENTARY_MODEL", "some-other-model")
+    sent = {}
+
+    def post(url, **kwargs):
+        sent.update(kwargs["json"])
+        return OkResponse()
+
+    monkeypatch.setattr("app.commentary.requests.post", post)
+    generate_commentary(SUMMARY)
+
+    assert sent["model"] == "some-other-model"
+    assert "reasoning_effort" not in sent
 
 
 def test_timeout_returns_none(monkeypatch):
