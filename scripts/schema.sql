@@ -19,7 +19,7 @@ ON sales(county);
 CREATE INDEX IF NOT EXISTS idx_sales_date
 ON sales(date_of_sale);
 
--- Additional indexes for Sprint 2 price aggregations.
+-- Additional indexes for Sprint 2 price aggregations
 
 CREATE INDEX IF NOT EXISTS idx_sales_market_price
 ON sales(price)
@@ -32,3 +32,11 @@ WHERE not_full_market_price = 0;
 CREATE INDEX IF NOT EXISTS idx_sales_market_county_price
 ON sales(county, price)
 WHERE not_full_market_price = 0;
+
+-- Sprint 3: Persistent AI commentary cache
+
+CREATE TABLE IF NOT EXISTS commentary_cache (
+    cache_key TEXT PRIMARY KEY,
+    response_text TEXT NOT NULL,
+    generated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);

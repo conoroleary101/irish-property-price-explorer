@@ -11,6 +11,10 @@ from threading import Lock
 
 import requests
 
+from flask import has_app_context
+
+from .cache import fingerprint, get_cached, put_cached
+
 GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions"
 DEFAULT_MODEL = "openai/gpt-oss-20b"
 # gpt-oss models reason before answering, and the reasoning counts towards
@@ -101,6 +105,18 @@ def generate_commentary(summary, api_key=None, timeout=DEFAULT_TIMEOUT):
     what to show instead.
     """
     key = _cache_key(summary)
+
+    # Check persistent SQLite storage before the in-memory cache.
+    # This allows responses to survive application restarts.
+    if has_app_context():
+        try:
+            cached = get_cached(fingerprint(summary))
+            if cached is not None:
+                return cached
+        except Exception:
+            # A cache failure must not prevent commentary generation.
+            pass
+
     with _cache_lock:
         if key in _commentary_cache:
             return _commentary_cache[key]
@@ -137,10 +153,21 @@ def generate_commentary(summary, api_key=None, timeout=DEFAULT_TIMEOUT):
     except Exception:
         return None
 
+
     if text:
+        # Persist successful responses when running inside Flask.
+        if has_app_context():
+            try:
+                put_cached(fingerprint(summary), text)
+            except Exception:
+                # Preserve the existing in-memory fallback.
+                pass
+
         with _cache_lock:
             _commentary_cache[key] = text
+
     return text
+
 
 
 get_commentary = generate_commentary

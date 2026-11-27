@@ -66,3 +66,32 @@ and returns some sample records, along with an Overall Verification
 - `scripts/schema.sql` - Executable SQLite schema.
 
 The CSV file and generated SQLite database are local data files and are not committed to the repository.
+
+### Commentary Cache (IPPE-25)
+
+Generated commentary is stored in SQLite using a SHA-256
+fingerprint of the summary data.
+
+To clear cached commentary:
+
+    python scripts/database/clear_commentary_cache.py
+
+The command requires entering `CLEAR` before deleting entries.
+
+To preview cache warm-up for selected counties:
+
+    python scripts/database/warm_commentary_cache.py Cork Dublin
+
+To generate and cache responses:
+
+    python scripts/database/warm_commentary_cache.py Cork Dublin --execute
+
+Optional `--year-from` and `--year-to` arguments must match
+the filters used during the demonstration.
+
+The `DATABASE` configuration must point to the intended
+SQLite database. An API key must be supplied through the
+environment, not committed to the repository.
+
+The cache should be warmed on the deployed environment
+before the presentation.
